@@ -1,5 +1,6 @@
 package com.example.carsellservice.configuration;
 
+import com.example.carsellservice.enums.UserRole;
 import com.example.carsellservice.service.jwt.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -25,12 +27,18 @@ public class WebSecurityConfiguration {
 
     private final UserService userService;
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)//this line disables the crsf protection cause the application is stateless cause it is using JWT
-                .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
+                .authorizeHttpRequests(request -> request.requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/customer/**").hasAnyAuthority(UserRole.CUSTOMER.name())
+                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority(UserRole.ADMIN.name())
                         .anyRequest().authenticated()) //this allows access to all endpoints that start with /api/auth typically used for login and registation or password reset and requires authentication for all other requests
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); //this configures how sessions are managed and typically RESTFUL services where each request should be stateless, often in conjuction with JWT
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //this configures how sessions are managed and typically RESTFUL services where each request should be stateless, often in conjuction with JWT
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build(); //this builds the securityfilterchain object
     }
 
