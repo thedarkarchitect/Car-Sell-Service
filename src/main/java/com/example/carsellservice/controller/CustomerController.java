@@ -1,5 +1,6 @@
 package com.example.carsellservice.controller;
 
+import com.example.carsellservice.dto.BidDto;
 import com.example.carsellservice.dto.CarDto;
 import com.example.carsellservice.dto.SearchCarDto;
 import com.example.carsellservice.service.customer.CustomerService;
@@ -15,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/v1/customer")
 @RequiredArgsConstructor
 @CrossOrigin("*")
-public class CarController {
+public class CustomerController {
 
     private final CustomerService customerService;
 
@@ -52,6 +53,35 @@ public class CarController {
     @GetMapping("/my-car/{userId}")
     public ResponseEntity<List<CarDto>> getCustomerCars(@PathVariable Long userId){
         return ResponseEntity.ok(customerService.getCustomerCars(userId));
+    }
+
+    @PostMapping("/car/bid")
+    public ResponseEntity<?> bidOnACar(@RequestBody BidDto bidDto) {
+        boolean success = customerService.bidOnCar(bidDto);
+        if (success) return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    @GetMapping("/car/bid/{userId}")
+    public ResponseEntity<List<BidDto>> getCustomerBids(@PathVariable Long userId){
+        return ResponseEntity.ok(customerService.getBidsByUserId(userId));
+    }
+
+    @GetMapping("/car/{carId}/bids")
+    public ResponseEntity<List<BidDto>> getBidsByCar(@PathVariable Long carId){
+        return ResponseEntity.ok(customerService.getBidsByUserId(carId));
+    }
+
+    @GetMapping("/car/bid/{bidId}/{status}")
+    public ResponseEntity<?> changeBidStatus(@PathVariable Long bidId, @PathVariable String status){
+        boolean success = customerService.changeBidStatus(bidId, status);
+        if(success) return ResponseEntity.ok().build();
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/car/analytics/{userId}")
+    public ResponseEntity<?> getAnaylytics(@PathVariable Long userId){
+        return ResponseEntity.ok(customerService.getAnalytics(userId));
     }
 
     @DeleteMapping("/car/{id}")

@@ -1,9 +1,14 @@
 package com.example.carsellservice.service.customer;
 
+import com.example.carsellservice.dto.AnalyticsDto;
+import com.example.carsellservice.dto.BidDto;
 import com.example.carsellservice.dto.CarDto;
 import com.example.carsellservice.dto.SearchCarDto;
+import com.example.carsellservice.entity.Bid;
 import com.example.carsellservice.entity.Car;
 import com.example.carsellservice.entity.User;
+import com.example.carsellservice.enums.BidStatus;
+import com.example.carsellservice.repositories.BidRepository;
 import com.example.carsellservice.repositories.CarRepository;
 import com.example.carsellservice.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -23,6 +29,8 @@ public class CutsomerServiceImpl implements CustomerService{
     private final UserRepository userRepository;
 
     private final CarRepository carRepository;
+
+    private final BidRepository bidRepository;
 
     @Override
     public boolean createCar(CarDto carDto) throws IOException {
@@ -109,6 +117,63 @@ public class CutsomerServiceImpl implements CustomerService{
     @Override
     public List<CarDto> getCustomerCars(Long userId) {
         return carRepository.findAllByUserId(userId).stream().map(Car::getCarDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean bidOnCar(BidDto bidDto) {
+        Optional<Car> optionalCar = carRepository.findById(bidDto.getCarId());//this is possible cause of the relationship the bid table has with car and user tables
+        Optional<User> optionalUser = userRepository.findById(bidDto.getUserId());
+
+        if(optionalUser.isPresent() && optionalCar.isPresent()){
+            Bid bid = new Bid();
+
+            bid.setUser(optionalUser.get());
+            bid.setCar(optionalCar.get());
+            bid.setBidStatus(BidStatus.PENDING);//initial state of the bid Status
+            bid.setPrice(bidDto.getPrice());
+            bidRepository.save(bid);
+
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public List<BidDto> getBidsByUserId(Long userId) {
+        return bidRepository.findAllByUserId(userId).stream().map(Bid::getBidDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BidDto> getBidsByCarId(Long carId) {
+        return bidRepository.findAllByCarId(carId).stream().map(Bid::getBidDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public AnalyticsDto getAnalytics(Long userId) {
+        AnalyticsDto analyticsDto = new AnalyticsDto();
+        analyticsDto.setSoldCars(carRepository.countByUserIdAndSoldTrue(userId));
+        analyticsDto.setSoldCars(carRepository.countByUserId(userId));
+        return analyticsDto;
+    }
+
+    @Override
+    public boolean changeBidStatus(Long bidId, String status) {
+        Optional<Bid> optionalBid = bidRepository.findById(bidId);
+
+        if (optionalBid.isPresent()){
+            Bid existingBid = optionalBid.get();//this gets the bid
+
+            if(existingBid.getCar().getSold()) return false;//check if it is sold and if it is return false cause the status is already APPROVED
+
+            if(Objects.equals(status, "Approved")){ //test if the status trying to be set is Approved and if it bidStatus is set to Approved
+                existingBid.setBidStatus(BidStatus.APPROVED);
+            } else{
+                existingBid.setBidStatus(BidStatus.REJECTED);
+            }
+            bidRepository.save(existingBid);//this saves the new bid Status
+            return true;
+        }
+        return false;
     }
 
 
