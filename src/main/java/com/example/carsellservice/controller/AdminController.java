@@ -1,6 +1,7 @@
 package com.example.carsellservice.controller;
 
 import com.example.carsellservice.dto.CarDto;
+import com.example.carsellservice.dto.SearchCarDto;
 import com.example.carsellservice.service.admin.AdminService;
 import com.example.carsellservice.service.customer.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,11 @@ public class AdminController {
     @GetMapping("/car/{id}")
     public ResponseEntity<CarDto> getCarById(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getCarById(id));
+    }
+
+    @PostMapping("/car/search")
+    public ResponseEntity<List<CarDto>> searchCar(@RequestBody SearchCarDto searchCarDto) {
+        return ResponseEntity.ok(adminService.searchCar(searchCarDto));
     }
 
     @DeleteMapping("/car/{id}")

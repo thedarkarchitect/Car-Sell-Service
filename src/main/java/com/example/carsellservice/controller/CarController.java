@@ -1,6 +1,7 @@
 package com.example.carsellservice.controller;
 
 import com.example.carsellservice.dto.CarDto;
+import com.example.carsellservice.dto.SearchCarDto;
 import com.example.carsellservice.service.customer.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,23 @@ public class CarController {
     @GetMapping("/car/{id}")
     public ResponseEntity<CarDto> getCarById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCarById(id));
+    }
+
+    @PutMapping("/car/{id}")
+    public ResponseEntity<CarDto> updateCar(@PathVariable Long id, @ModelAttribute CarDto carDto) throws IOException {
+        boolean success = customerService.updateCar(id, carDto);
+        if(success) return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    @PostMapping("/car/search")
+    public ResponseEntity<List<CarDto>> searchCar(@RequestBody SearchCarDto searchCarDto) {
+        return ResponseEntity.ok(customerService.searchCar(searchCarDto));
+    }
+
+    @GetMapping("/my-car/{userId}")
+    public ResponseEntity<List<CarDto>> getCustomerCars(@PathVariable Long userId){
+        return ResponseEntity.ok(customerService.getCustomerCars(userId));
     }
 
     @DeleteMapping("/car/{id}")

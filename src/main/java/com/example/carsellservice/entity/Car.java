@@ -42,7 +42,7 @@ public class Car {
     @Column(columnDefinition = "BYTEA")
     private byte[] img;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)//the relationship with this entity and the user entity
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)//the relationship with this entity and the user entity and the fetch type decided whether or not to load all the data that belongs to the associations as soon as data is fetched from the parent table
     @JoinColumn(name = "user_id", nullable = false)//this field will be called user_id and will be the foreign key in this entity
     @OnDelete(action = OnDeleteAction.CASCADE) //when user is deleted
     @JsonIgnore//this makes the foreign key details not to be shown when this entity json is called
