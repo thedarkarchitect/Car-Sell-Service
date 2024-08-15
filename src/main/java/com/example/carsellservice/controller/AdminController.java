@@ -50,7 +50,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/car/{id}")
-    public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
+    public ResponseEntity<void> deleteCar(@PathVariable Long id) {
         adminService.deleteCar(id);//using the service will delete the car from the dataSource
         return ResponseEntity.ok(null);
     }
